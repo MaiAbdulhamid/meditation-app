@@ -1,12 +1,11 @@
 import { ImageBackground, SafeAreaView, Text, View } from "react-native";
 import React from "react";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-
 import BeachImage from "@/assets/meditation-images/beach.webp";
 import CustomButton from "@/components/CustomButton";
 import { useRouter } from "expo-router";
 import AppGradients from "@/components/AppGradients";
+import "../global.css";
 
 const App = () => {
   const router = useRouter();
@@ -19,24 +18,24 @@ const App = () => {
         className="flex-1"
       >
         <AppGradients colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.8)"]}>
-          <SafeAreaView className="flex-1 justify-between">
-            <View>
-              <Text className="text-center text-white font-bold text-4xl">
+          <SafeAreaView className="justify-between flex-1">
+            <View className="justify-end flex-1 h-full">
+              <Text className="text-4xl font-bold text-center text-white">
                 Simple Meditation
               </Text>
-              <Text className="text-center text-white font-regular text-2xl mt-3">
+              <Text className="mt-3 text-2xl text-center text-white font-regular">
                 Simplifying Meditation to Everyone
               </Text>
             </View>
-            <View>
+            <View className="py-9">
               <CustomButton
                 onPress={() => router.push("/nature-meditate")}
                 title="Get Started"
               />
             </View>
-            <StatusBar style="light" />
           </SafeAreaView>
         </AppGradients>
+        <StatusBar style="light" />
       </ImageBackground>
     </View>
   );

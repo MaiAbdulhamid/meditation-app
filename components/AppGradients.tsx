@@ -1,4 +1,4 @@
-import { SafeAreaView } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -9,9 +9,13 @@ type AppGradients = {
 
 const AppGradients = ({ children, colors }: AppGradients) => {
   return (
-    <LinearGradient className="flex-1" colors={colors}>
-      <SafeAreaView className="flex-1 mx-5 my-12">{children}</SafeAreaView>
-    </LinearGradient>
+    <View className="flex-1">
+      <LinearGradient
+        style={StyleSheet.absoluteFillObject}
+        colors={colors as any}
+      />
+      <View className="flex-1 mx-5 my-12">{children}</View>
+    </View>
   );
 };
 

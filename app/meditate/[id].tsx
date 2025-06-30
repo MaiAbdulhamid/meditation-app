@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, ImageBackground } from "react-native";
+import { View, Text, ImageBackground, Alert } from "react-native";
 import AppGradients from "@/components/AppGradients";
 import BackButton from "@/components/BackButton";
 import CustomButton from "@/components/CustomButton";
-import { Audio } from "expo-av";
+import { useAudioPlayer, AudioSource, AudioPlayer } from "expo-audio";
 import { MEDITATION_DATA, AUDIO_FILES } from "@/constants/MeditationData";
 import { DurationContext } from "@/context/DurationContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -15,8 +15,19 @@ const Meditate = () => {
   const { duration, setDuration } = useContext(DurationContext);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(duration);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [audioSound, setAudioSound] = useState<Audio.Sound | null>(null);
-  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
+
+  // Get audio source
+  const audioFileName = MEDITATION_DATA[Number(id) - 1]?.audio;
+  const audioSource: AudioSource = AUDIO_FILES[audioFileName];
+
+  // Initialize audio player with error handling
+  let player: AudioPlayer;
+  try {
+    player = useAudioPlayer(audioSource);
+  } catch (error) {
+    console.error("Error initializing audio player:", error);
+    Alert.alert("Audio Error", "Failed to load audio file");
+  }
 
   useEffect(() => {
     setSecondsRemaining(duration);
@@ -39,44 +50,30 @@ const Meditate = () => {
     };
   }, [isRunning, secondsRemaining]);
 
-  useEffect(() => {
-    return () => {
-      audioSound?.unloadAsync();
-    };
-  }, [audioSound]);
-
-  const initializeAudioSound = async () => {
-    if (!audioSound) {
-      const audioFileName = MEDITATION_DATA[Number(id) - 1].audio;
-      const audio = AUDIO_FILES[audioFileName];
-      const { sound } = await Audio.Sound.createAsync(audio);
-      setAudioSound(sound);
-      return sound;
-    }
-    return audioSound;
-  };
-
   const startMeditation = async () => {
-    setSecondsRemaining(duration); // Reset to initial duration on start
-    setIsRunning(true);
-    const sound = await initializeAudioSound();
-    if (!isAudioPlaying) {
-      await sound.playAsync();
-      setIsAudioPlaying(true);
+    try {
+      setSecondsRemaining(duration);
+      setIsRunning(true);
+
+      console.log("Starting meditation with audio:", audioFileName);
+      console.log("Audio source:", audioSource);
+
+      player.play();
+      console.log("Audio started successfully");
+    } catch (error) {
+      console.error("Error starting meditation audio:", error);
+      setIsRunning(false);
     }
   };
 
-  const stopAudio = async () => {
-    if (audioSound) {
-      await audioSound.stopAsync();
-      setIsAudioPlaying(false);
-    }
+  const stopAudio = () => {
+    player.pause();
   };
 
   const toggleAudioStatus = async () => {
     if (isRunning) {
       setIsRunning(false);
-      await stopAudio();
+      stopAudio();
     } else {
       await startMeditation();
     }
@@ -92,7 +89,7 @@ const Meditate = () => {
 
   const adjustDurationHandler = () => {
     if (isRunning) return toggleAudioStatus();
-    router.push("(modal)/adjust-duration");
+    router.push("(modal)/adjust-duration" as any);
   };
 
   return (
@@ -104,8 +101,8 @@ const Meditate = () => {
       >
         <AppGradients colors={["transparent", "rgba(0, 0, 0, 0.8)"]}>
           <BackButton />
-          <View className="flex-1 justify-center">
-            <View className="mx-auto bg-neutral-200 rounded-full w-44 h-44 justify-center items-center">
+          <View className="justify-center flex-1">
+            <View className="items-center justify-center mx-auto rounded-full bg-neutral-200 w-44 h-44">
               <Text className="text-4xl text-blue-800 font-rmono">
                 {formattedTimeInMinutes}:{formattedTimeInSeconds}
               </Text>
